@@ -1,0 +1,408 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+
+<style>
+    .hotspot-page {
+        width: 100%;
+        max-width: 1500px;
+        margin: 0 auto;
+        padding: 28px 0 45px;
+        color: #eaf2ff;
+    }
+
+    .hotspot-eyebrow {
+        margin: 0 0 10px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        color: #38bdf8;
+    }
+
+    .hotspot-title {
+        font-size: clamp(26px, 3vw, 36px);
+        font-weight: 750;
+        margin: 0 0 12px;
+        color: #f8fafc;
+    }
+
+    .hotspot-description {
+        color: #94a3b8;
+        font-size: 14px;
+        line-height: 1.7;
+        margin: 0 0 26px;
+        max-width: 850px;
+    }
+
+    .hotspot-stats {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .hotspot-stat-card {
+        min-width: 0;
+        background: #101e31;
+        border: 1px solid #263951;
+        border-radius: 16px;
+        padding: 22px;
+    }
+
+    .hotspot-stat-label {
+        color: #94a3b8;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .hotspot-stat-value {
+        margin-top: 12px;
+        font-size: clamp(24px, 2.6vw, 34px);
+        font-weight: 750;
+        color: #f8fafc;
+    }
+
+    .hotspot-stat-card.fatal .hotspot-stat-value {
+        color: #fb7185;
+    }
+
+    .hotspot-stat-card.serious .hotspot-stat-value {
+        color: #fbbf24;
+    }
+
+    .hotspot-stat-card.total .hotspot-stat-value {
+        color: #38bdf8;
+    }
+
+    .hotspot-stat-card.cells .hotspot-stat-value {
+        color: #34d399;
+    }
+
+    .hotspot-map-panel {
+        background: #101e31;
+        border: 1px solid #263951;
+        border-radius: 18px;
+        overflow: hidden;
+        margin-bottom: 22px;
+    }
+
+    .hotspot-map-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 22px 24px;
+    }
+
+    .hotspot-map-header h2 {
+        margin: 0 0 7px;
+        color: #f8fafc;
+        font-size: 19px;
+    }
+
+    .hotspot-map-header p {
+        margin: 0;
+        color: #94a3b8;
+        font-size: 13px;
+        line-height: 1.6;
+    }
+
+    .hotspot-map-tag {
+        white-space: nowrap;
+        padding: 9px 13px;
+        border: 1px solid #275a77;
+        border-radius: 8px;
+        background: #112f46;
+        color: #7dd3fc;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .hotspot-map-frame {
+        display: block;
+        width: 100%;
+        height: 690px;
+        border: 0;
+        background: #17263b;
+    }
+
+    .hotspot-map-footer {
+        padding: 14px 24px;
+        border-top: 1px solid #263951;
+        color: #94a3b8;
+        font-size: 12px;
+        line-height: 1.7;
+    }
+
+    .hotspot-details {
+        background: #101e31;
+        border: 1px solid #263951;
+        border-radius: 16px;
+        padding: 23px 25px;
+    }
+
+    .hotspot-details h3 {
+        font-size: 17px;
+        margin: 0 0 13px;
+        color: #f8fafc;
+    }
+
+    .hotspot-details p {
+        margin: 0 0 12px;
+        font-size: 13px;
+        color: #a9bed5;
+        line-height: 1.8;
+    }
+
+    .hotspot-details p:last-child {
+        margin-bottom: 0;
+    }
+
+    .hotspot-error {
+        padding: 22px;
+        background: #311c29;
+        border: 1px solid #894352;
+        border-radius: 12px;
+        color: #fecdd3;
+        line-height: 1.7;
+    }
+
+    @media (max-width: 1100px) {
+        .hotspot-stats {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (max-width: 700px) {
+        .hotspot-page {
+            padding-top: 18px;
+        }
+
+        .hotspot-stats {
+            gap: 10px;
+        }
+
+        .hotspot-stat-card {
+            padding: 16px;
+        }
+
+        .hotspot-map-header {
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 18px;
+        }
+
+        .hotspot-map-frame {
+            height: 570px;
+        }
+
+        .hotspot-map-footer {
+            padding: 13px 18px;
+        }
+
+        .hotspot-details {
+            padding: 18px;
+        }
+    }
+</style>
+
+
+<div class="hotspot-page">
+
+    <p class="hotspot-eyebrow">
+        GEOSPATIAL COLLISION INTELLIGENCE
+    </p>
+
+    <h1 class="hotspot-title">
+        Hotspot Analysis
+    </h1>
+
+    <p class="hotspot-description">
+        Explore locations with high concentrations of
+        historically reported Fatal and Serious road
+        collisions across Great Britain from 2023 to 2025.
+    </p>
+
+    {% if error %}
+
+    <div class="hotspot-error" role="alert">
+        {{ error }}
+    </div>
+
+    {% else %}
+
+    <!-- SUMMARY CARDS ABOVE MAP -->
+
+    <div class="hotspot-stats">
+
+        <div class="hotspot-stat-card fatal">
+            <div class="hotspot-stat-label">
+                Fatal Collisions
+            </div>
+            <div class="hotspot-stat-value">
+                {{ "{:,}".format(summary.total_fatal) }}
+            </div>
+        </div>
+
+        <div class="hotspot-stat-card serious">
+            <div class="hotspot-stat-label">
+                Serious Collisions
+            </div>
+            <div class="hotspot-stat-value">
+                {{ "{:,}".format(summary.total_serious) }}
+            </div>
+        </div>
+
+        <div class="hotspot-stat-card total">
+            <div class="hotspot-stat-label">
+                Total Severe Collisions
+            </div>
+            <div class="hotspot-stat-value">
+                {{ "{:,}".format(summary.total_fatal_serious) }}
+            </div>
+        </div>
+
+        <div class="hotspot-stat-card cells">
+            <div class="hotspot-stat-label">
+                Candidate Black Spots
+            </div>
+            <div class="hotspot-stat-value">
+                {{ "{:,}".format(summary.candidate_hotspot_cells) }}
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- INTERACTIVE MAP -->
+
+    <section class="hotspot-map-panel">
+
+        <div class="hotspot-map-header">
+
+            <div>
+                <h2>Interactive Hotspot Map</h2>
+
+                <p>
+                    Satellite view with clickable Fatal
+                    and Serious collision hotspots.
+                </p>
+            </div>
+
+            <span class="hotspot-map-tag">
+                1 KM GRID
+            </span>
+
+        </div>
+
+        <iframe
+            id="hotspotMapFrame"
+            class="hotspot-map-frame"
+            title="ROADSHIELD Black Spot Analysis Map"
+            src="{{ map_url }}"
+            loading="eager"
+            referrerpolicy="no-referrer"
+            allowfullscreen>
+        </iframe>
+
+        <div class="hotspot-map-footer">
+            Click a colored marker to view the
+            location, Fatal and Serious collision
+            counts, and geographical coordinates.
+            Use the map controls to zoom, pan,
+            or enter fullscreen mode.
+        </div>
+
+    </section>
+
+
+    <!-- EXPLANATION -->
+
+    <section class="hotspot-details">
+
+        <h3>
+            How Hotspots Are Identified
+        </h3>
+
+        <p>
+            ROADSHIELD groups geocoded Fatal and
+            Serious collision records into
+            1 km × 1 km geographical cells.
+            Slight collisions are excluded.
+        </p>
+
+        <p>
+            The map highlights cells whose severe
+            collision counts are at or above the
+            99th percentile among occupied cells.
+            These are candidate historical hotspots,
+            not confirmed future accident locations.
+        </p>
+
+        <p>
+            These counts represent reported collisions,
+            not the number of people killed or injured.
+            They are not adjusted for traffic volume,
+            so hotspot concentration should not be
+            interpreted as an independent measure
+            of collision risk.
+        </p>
+
+    </section>
+
+    {% endif %}
+
+</div>
+
+
+{% if map_url and not error %}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const mapFrame = document.getElementById("hotspotMapFrame");
+
+        if (!mapFrame) {
+            return;
+        }
+
+        function removeFloatingSummary() {
+
+            try {
+                const mapDocument = mapFrame.contentDocument;
+
+                if (!mapDocument) {
+                    return;
+                }
+
+                // Remove only the floating summary overlay
+                // generated by the teammate's Folium service.
+                const floatingCard = mapDocument.querySelector(
+                    'div[style*="position:fixed"][style*="top:15px"][style*="left:60px"]'
+                );
+
+                if (floatingCard) {
+                    floatingCard.remove();
+                }
+
+            } catch (error) {
+                console.warn(
+                    "Could not remove hotspot summary overlay:",
+                    error
+                );
+            }
+        }
+
+        mapFrame.addEventListener("load", removeFloatingSummary);
+
+        // Also handle the case where the iframe
+        // has already completed loading.
+        removeFloatingSummary();
+
+    });
+</script>
+
+{% endif %}
+
+{% endblock %}

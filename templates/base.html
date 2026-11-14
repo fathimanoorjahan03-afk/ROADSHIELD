@@ -1,0 +1,79 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>ROADSHIELD | Road Safety Analytics</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+    <div class="app-layout">
+
+        <aside class="sidebar">
+
+            <div class="brand">
+                <span class="brand-icon">◆</span>
+                <span>ROADSHIELD</span>
+            </div>
+
+            <nav class="navigation">
+
+                <a href="{{ url_for('home') }}"
+                   class="nav-link">
+                    Home
+                </a>
+
+                <a href="{{ url_for('dashboard') }}"
+                   class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                    Dashboard
+                </a>
+
+                <a href="{{ url_for('predict') }}"
+                   class="nav-link {% if request.endpoint == 'predict' %}active{% endif %}">
+                    Severity Prediction
+                </a>
+
+                <a href="{{ url_for('hotspots') }}"
+                   class="nav-link {% if request.endpoint == 'hotspots' %}active{% endif %}">
+                    Hotspot Analysis
+                </a>
+
+            </nav>
+
+            <div class="sidebar-footer">
+                Road Safety Intelligence Platform
+            </div>
+
+        </aside>
+
+        <main class="main-content">
+
+            <header class="topbar">
+
+                <span class="topbar-label">
+                    ROAD SAFETY ANALYTICS
+                </span>
+
+                <span class="status">
+                    ROADSHIELD
+                </span>
+
+            </header>
+
+            {% block content %}{% endblock %}
+
+        </main>
+
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+</body>
+</html>

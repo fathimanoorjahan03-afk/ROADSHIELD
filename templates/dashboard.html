@@ -1,0 +1,308 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- PAGE HEADING -->
+
+<section class="page-heading">
+    <p class="eyebrow">COLLISION ANALYTICS</p>
+
+    <h1>Road Safety Overview</h1>
+
+    <p class="subtitle">
+        Explore historical road collision trends and discover patterns
+        across the 2023–2025 dataset.
+    </p>
+</section>
+
+
+<!-- DASHBOARD STATISTICS -->
+
+<section class="stats-grid">
+
+    <div class="stat-card">
+        <p>Total Recorded Collisions</p>
+        <h2>{{ stats.total }}</h2>
+        <span>2023–2025 historical records</span>
+    </div>
+
+    <div class="stat-card">
+        <p>Year-over-Year Change</p>
+        <h2>{{ stats.yearly_change }}</h2>
+        <span>
+            {{ stats.previous_year }} to {{ stats.latest_year }}
+        </span>
+    </div>
+
+    <div class="stat-card">
+        <p>Police Force Areas</p>
+        <h2>{{ stats.areas }}</h2>
+        <span>Distinct police force codes</span>
+    </div>
+
+    <div class="stat-card">
+        <p>Peak Collision Hour</p>
+        <h2>{{ stats.peak_hour }}</h2>
+        <span>Highest recorded hourly count</span>
+    </div>
+
+</section>
+
+
+<!-- YEARLY AND MONTHLY CHARTS -->
+
+<section class="analytics-grid">
+
+    <div class="analytics-panel">
+        <div class="panel-header">
+            <div>
+                <h3>Yearly Collision Trend</h3>
+                <p>Recorded collisions by year</p>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="yearlyChart"></canvas>
+        </div>
+    </div>
+
+    <div class="analytics-panel">
+        <div class="panel-header">
+            <div>
+                <h3>Monthly Collision Distribution</h3>
+                <p>Combined monthly counts across all three years</p>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="monthlyChart"></canvas>
+        </div>
+    </div>
+
+
+    <!-- COLLISION TIMING HEATMAP -->
+
+    <div class="analytics-panel analytics-wide">
+
+        <div class="panel-header">
+            <div>
+                <h3>Collision Timing Heatmap</h3>
+                <p>Day-of-week × hour-of-day concentration</p>
+            </div>
+        </div>
+
+        <div class="heatmap-wrapper">
+
+            <div class="heatmap-grid">
+
+                <div class="heatmap-corner"></div>
+
+                {% for hour in range(24) %}
+                    <div class="heatmap-hour">
+                        {{ "%02d"|format(hour) }}
+                    </div>
+                {% endfor %}
+
+
+                {% for row in heatmap_rows %}
+
+                    <div class="heatmap-day">
+                        {{ row.day }}
+                    </div>
+
+                    {% for cell in row.cells %}
+
+                        <div
+                            class="heatmap-cell"
+                            data-count="{{ cell.count }}"
+                            title="{{ row.day }} {{ cell.hour }} — {{ cell.count }} recorded collisions">
+                        </div>
+
+                    {% endfor %}
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+
+        <!-- HEATMAP LEGEND -->
+
+        <div class="heatmap-legend">
+
+            <span>Lower concentration</span>
+
+            <div class="legend-scale">
+                <span class="legend-box low"></span>
+                <span class="legend-box mid"></span>
+                <span class="legend-box high"></span>
+            </div>
+
+            <span>Higher concentration</span>
+
+        </div>
+
+    </div>
+
+
+    <!-- AUTOMATIC TIMING INSIGHT -->
+
+    <div class="analytics-panel analytics-wide insight-panel">
+
+        <div class="panel-header">
+            <div>
+                <h3>Key Timing Insight</h3>
+                <p>Automatically generated from the historical dataset</p>
+            </div>
+        </div>
+
+        <p class="insight-text">
+            {{ timing_insight }}
+        </p>
+
+    </div>
+
+</section>
+
+
+<!-- SEVERITY ANALYTICS SECTION -->
+
+<section class="severity-analytics">
+
+    <div class="section-title">
+
+        <p class="eyebrow">SEVERITY ANALYTICS</p>
+
+        <h2>Understanding Collision Severity</h2>
+
+        <p>
+            Explore historical severity composition and compare
+            patterns across different speed limits.
+        </p>
+
+    </div>
+
+
+    <div class="severity-chart-grid">
+
+        <!-- SEVERITY DONUT CHART -->
+
+        <div class="analytics-panel">
+
+            <div class="panel-header">
+                <div>
+                    <h3>Collision Severity Distribution</h3>
+                    <p>Historical class composition</p>
+                </div>
+            </div>
+
+            <div class="donut-chart-container">
+                <canvas id="severityDonutChart"></canvas>
+            </div>
+
+            <p class="chart-description">
+                The historical dataset has an unequal distribution
+                of Slight, Serious, and Fatal collisions.
+            </p>
+
+        </div>
+
+
+        <!-- 100% STACKED SPEED LIMIT CHART -->
+
+        <div class="analytics-panel">
+
+            <div class="panel-header">
+                <div>
+                    <h3>Severity by Speed Limit</h3>
+                    <p>
+                        Percentage distribution within each
+                        speed-limit category
+                    </p>
+                </div>
+            </div>
+
+            <div class="stacked-chart-container">
+                <canvas id="speedSeverityChart"></canvas>
+            </div>
+
+            <p class="chart-description">
+                Each bar represents the severity composition
+                among recorded collisions at that speed limit.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <!-- HISTORICAL SEVERITY INSIGHTS -->
+
+    <div class="analytics-panel insights-container">
+
+        <div class="panel-header">
+            <div>
+                <h3>Historical Severity Insights</h3>
+                <p>
+                    Automatically generated from recorded
+                    road collision data
+                </p>
+            </div>
+        </div>
+
+        <div class="insights-list">
+
+            {% for insight in insights %}
+
+                <div class="insight-item">
+
+                    <span class="insight-icon">✦</span>
+
+                    <p>{{ insight }}</p>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- DATA SOURCE NOTE -->
+
+<div class="data-note">
+
+    Source: UK road collision records, 2023–2025.
+
+    These visualizations describe patterns among recorded
+    collisions. They do not represent the probability
+    of an accident occurring.
+
+</div>
+
+
+<!-- DATA PASSED FROM FLASK TO JAVASCRIPT -->
+
+<script id="dashboard-data" type="application/json">
+    {{ chart_data | tojson }}
+</script>
+
+<script id="severity-data" type="application/json">
+    {{ severity_chart | tojson }}
+</script>
+
+<script id="speed-data" type="application/json">
+    {{ speed_chart | tojson }}
+</script>
+
+
+<!-- CHART.JS -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.min.js"></script>
+
+{% endblock %}

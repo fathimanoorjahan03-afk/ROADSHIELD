@@ -1,0 +1,548 @@
+
+{% extends "base.html" %}
+
+{% block content %}
+
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/prediction.css') }}">
+
+<link rel="stylesheet"
+      href="{{ url_for('static', filename='css/historical.css') }}">
+
+<section class="page-heading">
+    <p class="eyebrow">SEVERITY PREDICTION</p>
+
+    <h1>Collision Severity Prediction</h1>
+
+    <p class="subtitle">
+        Select road conditions to estimate the severity
+        of a collision using the trained Random Forest.
+    </p>
+</section>
+
+
+{% if error %}
+<div class="prediction-error" role="alert">
+    {{ error }}
+</div>
+{% endif %}
+
+
+<div class="prediction-layout"
+     {% if not result %}
+     style="grid-template-columns: minmax(0, 1fr); max-width: 920px;"
+     {% endif %}>
+
+    <!-- ROAD CONDITION INPUT FORM -->
+
+    <section class="prediction-card">
+
+        <div class="form-heading">
+
+            <h3>Road Condition Inputs</h3>
+
+            <p>
+                Essential inputs are shown first.
+                Additional model inputs are available below.
+            </p>
+
+        </div>
+
+
+        <form method="POST"
+              action="{{ url_for('predict') }}"
+              id="predictionForm">
+
+            <input type="hidden"
+                   name="intent"
+                   value="predict">
+
+
+            <!-- ESSENTIAL ROAD CONDITIONS -->
+
+            <div class="form-section-heading">
+
+                <span class="section-number">01</span>
+
+                <div>
+                    <h3>Essential Road Conditions</h3>
+                    <p>Road, weather, and time information</p>
+                </div>
+
+            </div>
+
+
+            <div class="prediction-form-grid">
+
+                {% for field in fields %}
+                {% if field.group == "essential" %}
+
+                <div class="prediction-field">
+
+                    <label for="{{ field.name }}">
+                        {{ field.label }}
+                    </label>
+
+
+                    {% if field.type == "number" %}
+
+                    <input
+                        type="number"
+                        id="{{ field.name }}"
+                        name="{{ field.name }}"
+                        min="{{ field.min }}"
+                        step="1"
+                        value="{{ values.get(field.name, '') }}"
+                        required
+                    >
+
+
+                    {% elif field.type == "time" %}
+
+                    <input
+                        type="time"
+                        id="collision_time"
+                        name="collision_time"
+                        value="{% if values.get('collision_time') %}{{ values.get('collision_time') }}{% elif values.get('hour') %}{{ '%02d'|format(values.get('hour')|int) }}:00{% endif %}"
+                        required
+                    >
+
+                    <input
+                        type="hidden"
+                        id="hour"
+                        name="hour"
+                        value="{{ values.get('hour', '') }}"
+                    >
+
+                    <small>
+                        Only the hour is used by the model.
+                    </small>
+
+
+                    {% else %}
+
+                    <select
+                        id="{{ field.name }}"
+                        name="{{ field.name }}"
+                        required
+                    >
+
+                        <option value="">
+                            Select {{ field.label }}
+                        </option>
+
+                        {% for option in field.options %}
+
+                        <option
+                            value="{{ option.value }}"
+                            {% if values.get(field.name) == option.value %}
+                                selected
+                            {% endif %}
+                        >
+                            {{ option.label }}
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                    {% endif %}
+
+                </div>
+
+                {% endif %}
+                {% endfor %}
+
+            </div>
+
+
+
+            <!-- ADVANCED ROAD DETAILS -->
+
+            <details class="advanced-details"
+                     {% if error %}open{% endif %}>
+
+                <summary class="advanced-toggle">
+
+                    <div class="advanced-toggle-text">
+
+                        <span class="section-number">02</span>
+
+                        <div>
+
+                            <strong>Advanced Road Details</strong>
+
+                            <span>
+                                Additional model inputs
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <span class="toggle-chevron">⌄</span>
+
+                </summary>
+
+
+                <p class="advanced-description">
+                    Complete the additional road and location
+                    details required by the trained model.
+                </p>
+
+
+                <div class="prediction-form-grid">
+
+                    {% for field in fields %}
+                    {% if field.group == "advanced" %}
+
+                    <div class="prediction-field">
+
+                        <label for="{{ field.name }}">
+                            {{ field.label }}
+                        </label>
+
+
+                        {% if field.type == "search" %}
+
+                        <div class="search-dropdown"
+                             data-field="{{ field.name }}">
+
+                            <input
+                                type="search"
+                                class="search-dropdown-input"
+                                autocomplete="off"
+                                placeholder="Search name or code..."
+                                aria-label="Search {{ field.label }}"
+                                aria-expanded="false"
+                                value="{% for option in field.options %}{% if values.get(field.name) == option.value %}{{ option.label }}{% endif %}{% endfor %}"
+                            >
+
+                            <input
+                                type="hidden"
+                                class="search-dropdown-value"
+                                id="{{ field.name }}"
+                                name="{{ field.name }}"
+                                value="{{ values.get(field.name, '') }}"
+                            >
+
+                            <div class="search-dropdown-menu"
+                                 role="listbox"
+                                 hidden>
+
+                                {% for option in field.options %}
+
+                                <button
+                                    type="button"
+                                    class="search-option"
+                                    role="option"
+                                    data-value="{{ option.value }}"
+                                    data-label="{{ option.label }}"
+                                >
+                                    {{ option.label }}
+                                </button>
+
+                                {% endfor %}
+
+                            </div>
+
+                        </div>
+
+
+                        {% elif field.type == "number" %}
+
+                        <input
+                            type="number"
+                            name="{{ field.name }}"
+                            id="{{ field.name }}"
+                            min="{{ field.min }}"
+                            step="1"
+                            value="{{ values.get(field.name, '') }}"
+                            required
+                        >
+
+
+                        {% else %}
+
+                        <select
+                            name="{{ field.name }}"
+                            id="{{ field.name }}"
+                            required
+                        >
+
+                            <option value="">
+                                Select {{ field.label }}
+                            </option>
+
+                            {% for option in field.options %}
+
+                            <option
+                                value="{{ option.value }}"
+                                {% if values.get(field.name) == option.value %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ option.label }}
+                            </option>
+
+                            {% endfor %}
+
+                        </select>
+
+                        {% endif %}
+
+                    </div>
+
+                    {% endif %}
+                    {% endfor %}
+
+                </div>
+
+            </details>
+
+
+
+            <!-- PREDICT BUTTON -->
+
+            <div id="formError"
+                 class="prediction-error"
+                 role="alert"
+                 hidden>
+            </div>
+
+            <button type="submit"
+                    class="prediction-submit">
+
+                Predict Collision Severity
+
+            </button>
+
+        </form>
+
+    </section>
+
+
+
+    <!-- SHOW RESULTS ONLY AFTER PREDICTION -->
+
+    {% if result %}
+
+    <aside class="prediction-side">
+
+        <div class="prediction-card result-card">
+
+            <p class="eyebrow">PREDICTION RESULT</p>
+
+
+            <h2 class="result-title
+                {% if result.prediction == 'Fatal' %}fatal-text
+                {% elif result.prediction == 'Serious' %}serious-text
+                {% endif %}">
+
+                {{ result.prediction }}
+
+            </h2>
+
+
+            <p class="result-subtitle">
+                Predicted severity if a collision occurs
+            </p>
+
+
+            <div class="result-divider"></div>
+
+
+            <h3>Class Probabilities</h3>
+
+
+            {% for item in result.probabilities %}
+
+            <div class="probability-item">
+
+                <div class="probability-label">
+
+                    <span>{{ item.name }}</span>
+
+                    <strong>
+                        {{ item.percentage }}%
+                    </strong>
+
+                </div>
+
+
+                <div class="probability-track">
+
+                    <div class="probability-fill
+                        {% if item.name == 'Slight' %}slight
+                        {% elif item.name == 'Serious' %}serious
+                        {% else %}fatal{% endif %}"
+                        data-width="{{ item.percentage }}">
+                    </div>
+
+                </div>
+
+            </div>
+
+            {% endfor %}
+
+
+            <div class="prediction-info">
+                Model-estimated severity probabilities,
+                conditional on a collision occurring.
+            </div>
+
+
+
+            <!-- GENERATE HISTORICAL ANALYSIS -->
+
+            <form
+                method="POST"
+                action="{{ url_for('predict') }}#historical-results"
+                class="historical-action-form">
+
+                <input
+                    type="hidden"
+                    name="intent"
+                    value="historical"
+                >
+
+                {% for name, value in values.items() %}
+
+                    {% if name != 'intent' %}
+
+                    <input
+                        type="hidden"
+                        name="{{ name }}"
+                        value="{{ value }}"
+                    >
+
+                    {% endif %}
+
+                {% endfor %}
+
+
+                <button
+                    type="submit"
+                    class="historical-generate-button">
+
+                    Generate Historical Analysis
+
+                </button>
+
+
+                <p class="historical-action-note">
+                    Discover meaningful historical insights
+                    based on your selected road conditions.
+                </p>
+
+            </form>
+
+        </div>
+
+    </aside>
+
+    {% endif %}
+
+</div>
+
+
+
+<!-- HISTORICAL INSIGHTS REPORT -->
+
+{% if historical %}
+
+<section id="historical-results"
+         class="historical-results">
+
+
+    <div class="historical-heading">
+
+        <p class="eyebrow">
+            HISTORICAL INTELLIGENCE
+        </p>
+
+        <h2>
+            Historical Insights Report
+        </h2>
+
+        <p>
+            Insights generated from the actual 2023–2025
+            UK collision dataset based on the selected conditions.
+        </p>
+
+    </div>
+
+
+
+    <div class="historical-match-details">
+
+        <strong>
+            Selected Collision Scenario
+        </strong>
+
+        <p>
+            {{ historical.selected_summary }}
+        </p>
+
+        <p>
+            Analysis based on
+            {{ "{:,}".format(historical.total_records) }}
+            recorded collisions.
+        </p>
+
+    </div>
+
+
+
+    {% for section in historical.sections %}
+
+    <div class="historical-panel historical-insights-panel">
+
+        <h3>
+
+            <span class="historical-insight-symbol">
+                {{ section.icon }}
+            </span>
+
+            {{ section.title }}
+
+        </h3>
+
+
+        {% for insight in section.insights %}
+
+        <div class="historical-insight">
+
+            <span class="historical-insight-symbol">
+                ✦
+            </span>
+
+            <p>
+                {{ insight }}
+            </p>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+    {% endfor %}
+
+
+
+    <p class="historical-disclaimer">
+        These findings describe patterns among reported
+        collisions. They do not establish causation or
+        measure the probability of an accident occurring.
+    </p>
+
+</section>
+
+{% endif %}
+
+
+
+<script src="{{ url_for('static', filename='js/prediction.js') }}"></script>
+
+{% endblock %}

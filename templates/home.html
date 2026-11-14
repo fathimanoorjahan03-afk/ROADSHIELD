@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROADSHIELD | Smarter Insights, Safer Roads</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/home.css') }}">
+</head>
+<body>
+
+<header class="home-header">
+    <a href="/" class="logo">
+        <span class="logo-symbol">◆</span>
+        ROADSHIELD
+    </a>
+
+    <nav class="home-nav">
+        <a href="/" class="active">Home</a>
+        <a href="{{ url_for('dashboard') }}">Dashboard</a>
+        <a href="#features">Features</a>
+        <a href="#about">About</a>
+    </nav>
+
+    <a href="{{ url_for('dashboard') }}" class="nav-button">
+        Launch Platform →
+    </a>
+</header>
+
+<main>
+    <section class="hero">
+        <div class="hero-glow"></div>
+
+        <div class="hero-content">
+            <div class="hero-badge">
+                ROAD SAFETY INTELLIGENCE PLATFORM
+            </div>
+
+            <h1>Smarter Insights.<br>
+                <span>Safer Roads.</span>
+            </h1>
+
+            <p>
+                Explore historical road collision patterns,
+                understand severity factors, and discover
+                data-driven insights to support safer roads.
+            </p>
+
+            <div class="hero-actions">
+                <a href="{{ url_for('dashboard') }}"
+                   class="btn-primary">
+                    Explore Dashboard →
+                </a>
+
+                <a href="#features" class="btn-secondary">
+                    Discover Features
+                </a>
+            </div>
+        </div>
+
+        <div class="hero-visual">
+            <div class="radar-circle radar-one"></div>
+            <div class="radar-circle radar-two"></div>
+            <div class="radar-circle radar-three"></div>
+
+            <div class="shield-symbol">◆</div>
+
+            <div class="visual-label">
+                DATA-DRIVEN ROAD SAFETY
+            </div>
+        </div>
+    </section>
+
+    <section class="home-stats">
+        <div class="home-stat">
+            <h2>306,710</h2>
+            <p>Recorded Collisions</p>
+        </div>
+        <div class="home-stat">
+            <h2>2023–2025</h2>
+            <p>Historical Data Period</p>
+        </div>
+        <div class="home-stat">
+            <h2>3</h2>
+            <p>Severity Categories</p>
+        </div>
+    </section>
+
+    <section class="features-section" id="features">
+        <div class="section-heading">
+            <span>OUR CAPABILITIES</span>
+            <h2>Explore the ROADSHIELD Platform</h2>
+            <p>
+                Bringing prediction, historical analytics,
+                and geographical insights together.
+            </p>
+        </div>
+
+        <div class="features-grid">
+
+            <!-- SEVERITY PREDICTION CARD -->
+            <a href="{{ url_for('predict') }}"
+               class="feature-card"
+               style="text-decoration: none; color: inherit; cursor: pointer;">
+
+                <div class="feature-icon">◈</div>
+
+                <h3>Severity Prediction</h3>
+
+                <p>
+                    Estimate collision severity using
+                    recorded road and environmental conditions.
+                </p>
+
+            </a>
+
+            <!-- HOTSPOT DETECTION CARD -->
+            <a href="{{ url_for('hotspots') }}"
+               class="feature-card"
+               style="text-decoration: none; color: inherit; cursor: pointer;">
+
+                <div class="feature-icon">◎</div>
+
+                <h3>Hotspot Detection</h3>
+
+                <p>
+                    Explore accident-prone locations through
+                    geographical collision analysis.
+                </p>
+
+            </a>
+
+        </div>
+    </section>
+
+    <section class="about-section" id="about">
+        <span>ABOUT ROADSHIELD</span>
+        <h2>Turning Collision Data into Meaningful Insights</h2>
+        <p>
+            ROADSHIELD is a road safety analytics platform
+            developed using historical UK road collision data.
+            It combines machine learning, statistical analysis,
+            and data visualization to help users explore
+            collision severity and geographical patterns.
+        </p>
+    </section>
+</main>
+
+<footer class="home-footer">
+    <span>◆ ROADSHIELD</span>
+    <p>Road Safety Intelligence Platform</p>
+</footer>
+
+</body>
+</html>
