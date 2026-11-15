@@ -1,22 +1,20 @@
-
 from flask import Flask, render_template, request, url_for
+
 import pandas as pd
+
 from pathlib import Path
+
 from functools import lru_cache
+
 
 from services.prediction_service import (
     get_form_fields,
     predict_severity
 )
 
+
 from services.historical_service import (
     generate_historical_analysis
-)
-
-from services.hotspot_service import (
-    REQUIRED_COLUMNS,
-    build_hotspot_map,
-    save_hotspot_map
 )
 
 
@@ -27,6 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent
 DATA_PATH = (
     BASE_DIR / "data" / "road_collision_2023_2025 (2).csv"
 )
+
 
 DAY_LABELS = {
     1: "Sun",
@@ -101,6 +100,7 @@ def load_data():
 
 @app.route("/")
 def home():
+
     return render_template("home.html")
 
 
@@ -489,62 +489,38 @@ def predict():
 
 
 # =====================================================
-# BLACK SPOT ANALYSIS
+# HOTSPOT ANALYSIS
 # =====================================================
 
 @lru_cache(maxsize=1)
 def prepare_hotspot_page():
     """
-    Generate the hotspot map only once
-    for the current Flask process.
+    Use the existing generated hotspot map.
+
+    This avoids regenerating the map during requests
+    and avoids writing files on Vercel.
     """
 
-    if not DATA_PATH.exists():
-        raise FileNotFoundError(
-            f"Collision dataset not found: {DATA_PATH}"
-        )
-
-    # Read only the columns needed for the map.
-    df = pd.read_csv(
-        DATA_PATH,
-        usecols=REQUIRED_COLUMNS,
-        low_memory=False
-    )
-
-    # Use the teammate's original hotspot algorithm.
-    map_object, grid_data, hot_cells, summary = (
-        build_hotspot_map(
-            df,
-            percentile=0.99
-        )
-    )
-
-    # Save the Folium map where Flask can serve it.
-    output_path = (
+    map_path = (
         Path(app.static_folder)
         / "generated"
         / "hotspots_map.html"
     )
 
-    save_hotspot_map(
-        map_object,
-        output_path
-    )
+    if not map_path.is_file():
+        raise FileNotFoundError(
+            f"Existing hotspot map not found: {map_path}"
+        )
 
-    # Keep project branding consistent.
-    map_html = output_path.read_text(
-        encoding="utf-8"
-    )
-
-    map_html = map_html.replace(
-        "ROADSHIELD AI",
-        "ROADSHIELD"
-    )
-
-    output_path.write_text(
-        map_html,
-        encoding="utf-8"
-    )
+    # Statistics from the existing 2023–2025 hotspot analysis.
+    summary = {
+        "valid_fatal_serious_records": 76668,
+        "total_fatal": 4477,
+        "total_serious": 72191,
+        "total_fatal_serious": 76668,
+        "candidate_hotspot_cells": 337,
+        "percentile": 0.99
+    }
 
     return summary
 
